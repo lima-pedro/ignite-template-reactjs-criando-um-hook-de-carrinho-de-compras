@@ -1,7 +1,8 @@
+// import { useEffect } from 'react';
 import { createContext, ReactNode, useContext, useState } from 'react';
 import { toast } from 'react-toastify';
 import { api } from '../services/api';
-import { Product, Stock } from '../types';
+import { Product } from '../types';
 
 interface CartProviderProps {
   children: ReactNode;
@@ -23,20 +24,70 @@ const CartContext = createContext<CartContextData>({} as CartContextData);
 
 export function CartProvider({ children }: CartProviderProps): JSX.Element {
   const [cart, setCart] = useState<Product[]>(() => {
-    // const storagedCart = Buscar dados do localStorage
+    const storagedCart = localStorage.getItem('@RocketShoes:cart')
 
-    // if (storagedCart) {
-    //   return JSON.parse(storagedCart);
-    // }
+    if (storagedCart) {
+      return JSON.parse(storagedCart);
+    }
 
     return [];
   });
 
+  const validateStock = async (productId: Number) => {
+    const stock: any = await api.get('http://localhost:3333/stock');
+    const stockProduct = stock.data.find((product: any) => product.id === productId);
+    if (stockProduct && stockProduct.amount === 0) {
+      toast.error('Quantidade solicitada fora de estoque');
+      return;
+    }
+    return stockProduct;
+  }
+
+  const updatedStock = async (stockProduct: any): Promise<void> => {
+    const payload = {
+      id: stockProduct.id,
+      amount: stockProduct.amount - 1
+    }
+    await api.put(`http://localhost:3333/stock/${stockProduct.id}`, payload);
+  }
+
+  const saveDataInStorage = async (payload: Array<any>) => {
+    localStorage.setItem('@RocketShoes:cart', JSON.stringify(payload));
+      setCart(payload)
+  }
+
   const addProduct = async (productId: number) => {
     try {
-      // TODO
-    } catch {
-      // TODO
+      const products: any = await api.get('http://localhost:3333/products');
+      const findProduct = products.data.find((item: any) => item.id === productId);
+      const stockProduct = await validateStock(productId);
+      await updatedStock(stockProduct);
+
+      if (!cart.length) {
+        const cart = [{...findProduct, amount: 1}];
+        saveDataInStorage(cart);
+        return;
+      }
+
+      const findSameProduct = cart.find((product: any) => product.id === productId);
+
+      let payload = [];
+      if (findSameProduct) {
+        const newCart = cart.map((product: any) => {
+          if (product.id === productId) {
+            product.amount = product.amount + 1;
+          }
+          return product;
+        })
+        payload = [...newCart];
+      } else {
+        payload = [...cart, {...findProduct, amount: 1}];
+      }
+
+      saveDataInStorage(payload);
+    } catch (error) {
+      console.log('error', error)
+      toast.error('Erro na adição do produto');
     }
   };
 
