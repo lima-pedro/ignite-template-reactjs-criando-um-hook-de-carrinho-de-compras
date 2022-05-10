@@ -11,6 +11,7 @@ interface CartProviderProps {
 interface UpdateProductAmount {
   productId: number;
   amount: number;
+  type: string;
 }
 
 interface CartContextData {
@@ -93,7 +94,13 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
 
   const removeProduct = (productId: number) => {
     try {
-      // TODO
+      
+
+      const filterProduct = cart.filter((product: any) => product.id !== productId);
+
+      if (filterProduct.length > 0) {
+          setCart(filterProduct);
+      }
     } catch {
       // TODO
     }
@@ -102,9 +109,31 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
   const updateProductAmount = async ({
     productId,
     amount,
+    type
   }: UpdateProductAmount) => {
     try {
-      // TODO
+
+      const findProduct = cart.find((product: any) => product.id === productId);
+      console.log(type)
+
+      if (type === 'increment') {
+        
+        if (findProduct && findProduct.amount > 1) {
+          amount = amount + 1;
+        }
+
+      }
+
+      if (type === 'decrement') {
+
+        if (findProduct && findProduct.amount > 1) {
+          amount = amount - 1;
+        }
+
+      }
+
+      console.log('findProduct', findProduct);
+      
     } catch {
       // TODO
     }
