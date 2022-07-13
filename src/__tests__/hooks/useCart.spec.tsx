@@ -413,7 +413,7 @@ describe('useCart Hook', () => {
     try {
       await waitForValueToChange(
         () => {
-          return result.current.cart;
+          return result.current.cart; 
         },
         { timeout: 50 }
       );

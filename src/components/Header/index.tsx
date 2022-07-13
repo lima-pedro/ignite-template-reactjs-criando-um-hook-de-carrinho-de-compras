@@ -8,8 +8,14 @@ import { useCart } from '../../hooks/useCart';
 
 const Header = (): JSX.Element => {
   const { cart } = useCart();
+  let id_product = 0;
   const cartSize = cart.reduce((acc, product) => {
-    acc = acc + product.amount;
+    
+    if (product.id !== id_product) {
+      acc = acc + 1;
+      id_product = product.id;
+    }
+    
     return acc;
   }, 0);
 

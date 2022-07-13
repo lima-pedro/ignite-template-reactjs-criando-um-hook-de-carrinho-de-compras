@@ -32,10 +32,10 @@ const Home = (): JSX.Element => {
   useEffect(() => {
     async function loadProducts() {
       try { 
-        const { data } = await api.get('http://localhost:3333/products');
+        const { data } = await api.get('/products');
         setProducts(data);
       } catch (error) {
-        console.log('error', error);
+
       }
     }
     loadProducts();
